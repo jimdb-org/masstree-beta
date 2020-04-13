@@ -52,3 +52,7 @@ GNUmakefile
 log
 tags
 results
+
+/.idea
+/build
+/cmake-build-debug
