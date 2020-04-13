@@ -34,7 +34,6 @@ typedef int64_t mrcu_signed_epoch_type;
 extern volatile mrcu_epoch_type globalepoch;  // global epoch, updated regularly
 extern volatile mrcu_epoch_type active_epoch;
 
-unsigned rcu_free_count = 128;  // max # of entries to free per rcu_quiesce() call
 
 struct limbo_group {
     typedef mrcu_epoch_type epoch_type;
@@ -98,6 +97,9 @@ class threadinfo {
     enum {
         TI_MAIN, TI_PROCESS, TI_LOG, TI_CHECKPOINT
     };
+
+    static bool no_pool_value;
+    static unsigned rcu_free_count;
 
     static threadinfo* allthreads;
 
@@ -342,15 +344,8 @@ class threadinfo {
         limbo_tail_->push_back(ptr, tag, epoch);
     }
 
-#if ENABLE_ASSERTIONS
-    static int no_pool_value;
-#endif
     static bool use_pool() {
-#if ENABLE_ASSERTIONS
         return !no_pool_value;
-#else
-        return true;
-#endif
     }
 
     inline threadinfo(int purpose, int index);

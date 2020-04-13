@@ -24,10 +24,10 @@
 #include <dirent.h>
 #endif
 
+bool threadinfo::no_pool_value = false;
+unsigned threadinfo::rcu_free_count = 128;
+
 threadinfo *threadinfo::allthreads;
-#if ENABLE_ASSERTIONS
-int threadinfo::no_pool_value;
-#endif
 
 inline threadinfo::threadinfo(int purpose, int index) {
     gc_epoch_ = perform_gc_epoch_ = 0;
