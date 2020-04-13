@@ -34,6 +34,8 @@ typedef int64_t mrcu_signed_epoch_type;
 extern volatile mrcu_epoch_type globalepoch;  // global epoch, updated regularly
 extern volatile mrcu_epoch_type active_epoch;
 
+unsigned rcu_free_count = 128;  // max # of entries to free per rcu_quiesce() call
+
 struct limbo_group {
     typedef mrcu_epoch_type epoch_type;
     typedef mrcu_signed_epoch_type signed_epoch_type;
@@ -258,8 +260,6 @@ class threadinfo {
              -nl * CACHE_LINE_SIZE);
     }
 
-    // RCU
-    enum { rcu_free_count = 128 }; // max # of entries to free per rcu_quiesce() call
     void rcu_start() {
         if (gc_epoch_ != globalepoch)
             gc_epoch_ = globalepoch;
