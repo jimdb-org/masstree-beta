@@ -44,6 +44,7 @@ inline threadinfo::threadinfo(int purpose, int index) {
     mark(tc_limbo_slots, limbo_group::capacity);
     limbo_head_ = limbo_tail_ = new(limbo_space) limbo_group;
     ts_ = 2;
+    rcu_size_ =  0;
 
     for (size_t i = 0; i != sizeof(counters_) / sizeof(counters_[0]); ++i) {
         counters_[i] = 0;
@@ -161,14 +162,6 @@ void threadinfo::report_rcu(void *ptr) const
                 e = lg->e_[i].u_.epoch;
         }
     }
-}
-
-size_t threadinfo::rcu_size() {
-    size_t size = 0;
-    for (limbo_group *lg = limbo_head_; lg; lg = lg->next_) {
-        size += lg->size();
-    }
-    return size;
 }
 
 void threadinfo::report_rcu_all(void *ptr)

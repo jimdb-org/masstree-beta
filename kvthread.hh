@@ -283,7 +283,7 @@ class threadinfo {
     void rcu_register(mrcu_callback* cb) {
         record_rcu(cb, memtag(-1));
     }
-    size_t rcu_size();
+    size_t rcu_size() const { return rcu_size_; }
 
     // thread management
     pthread_t& pthread() {
@@ -320,6 +320,7 @@ class threadinfo {
     limbo_group* limbo_head_;
     limbo_group* limbo_tail_;
     mutable kvtimestamp_t ts_;
+    uint64_t rcu_size_;
 
     enum { ncounters = (int) tc_max };
     uint64_t counters_[ncounters];
@@ -339,6 +340,8 @@ class threadinfo {
             *reinterpret_cast<void**>(p) = pool_[nl - 1];
             pool_[nl - 1] = p;
         }
+        assert(rcu_size_ >= 0);
+        --rcu_size_;
     }
 
     void record_rcu(void* ptr, memtag tag) {
@@ -346,6 +349,7 @@ class threadinfo {
             refill_rcu();
         uint64_t epoch = globalepoch;
         limbo_tail_->push_back(ptr, tag, epoch);
+        ++rcu_size_;
     }
 
     static bool use_pool() {
