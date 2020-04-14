@@ -101,7 +101,6 @@ class threadinfo {
         TI_MAIN, TI_PROCESS, TI_LOG, TI_CHECKPOINT
     };
 
-    static bool no_pool_value;
     static unsigned rcu_free_count;
 
     static threadinfo* allthreads;
@@ -110,7 +109,7 @@ class threadinfo {
         return next_;
     }
 
-    static threadinfo* make(int purpose, int index);
+    static threadinfo* make(int purpose, int index, bool use_pool = true);
     // XXX destructor
 
     // thread information
@@ -352,6 +351,7 @@ class threadinfo {
         ++rcu_size_;
     }
 
+    static int no_pool_value;
     static bool use_pool() {
         return !no_pool_value;
     }

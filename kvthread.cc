@@ -24,7 +24,7 @@
 #include <dirent.h>
 #endif
 
-bool threadinfo::no_pool_value = false;
+int threadinfo::no_pool_value;
 unsigned threadinfo::rcu_free_count = 128;
 
 threadinfo *threadinfo::allthreads;
@@ -51,7 +51,7 @@ inline threadinfo::threadinfo(int purpose, int index) {
     }
 }
 
-threadinfo *threadinfo::make(int purpose, int index) {
+threadinfo *threadinfo::make(int purpose, int index, bool use_pool) {
     static int threads_initialized;
 
     threadinfo* ti = new(malloc(8192)) threadinfo(purpose, index);
@@ -59,10 +59,7 @@ threadinfo *threadinfo::make(int purpose, int index) {
     allthreads = ti;
 
     if (!threads_initialized) {
-#if ENABLE_ASSERTIONS
-        const char* s = getenv("_");
-        no_pool_value = s && strstr(s, "valgrind") != 0;
-#endif
+        no_pool_value = !use_pool;
         threads_initialized = 1;
     }
 
