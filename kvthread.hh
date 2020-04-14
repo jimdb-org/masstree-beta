@@ -50,11 +50,12 @@ struct limbo_group {
     enum { capacity = (4076 - sizeof(epoch_type) - sizeof(limbo_group*)) / sizeof(limbo_element) };
     unsigned head_;
     unsigned tail_;
+    size_t size_;
     epoch_type epoch_;
     limbo_group* next_;
     limbo_element e_[capacity];
     limbo_group()
-        : head_(0), tail_(0), next_() {
+        : head_(0), tail_(0), size_(0), next_() {
     }
     epoch_type first_epoch() const {
         assert(head_ != tail_);
@@ -71,8 +72,10 @@ struct limbo_group {
         e_[tail_].ptr_ = ptr;
         e_[tail_].u_.tag = tag;
         ++tail_;
+        ++size_;
     }
     inline unsigned clean_until(threadinfo& ti, mrcu_epoch_type epoch_bound, unsigned count);
+    size_t size() const { return size_; }
 };
 
 template <int N> struct has_threadcounter {
@@ -280,6 +283,7 @@ class threadinfo {
     void rcu_register(mrcu_callback* cb) {
         record_rcu(cb, memtag(-1));
     }
+    size_t rcu_size();
 
     // thread management
     pthread_t& pthread() {

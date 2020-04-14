@@ -86,6 +86,7 @@ inline unsigned limbo_group::clean_until(threadinfo& ti, mrcu_epoch_type epoch_b
             ti.free_rcu(e_[head_].ptr_, e_[head_].u_.tag);
             ti.mark(tc_gc);
             --count;
+            --size_;
             if (!count) {
                 e_[head_].ptr_ = nullptr;
                 e_[head_].u_.epoch = epoch;
@@ -160,6 +161,14 @@ void threadinfo::report_rcu(void *ptr) const
                 e = lg->e_[i].u_.epoch;
         }
     }
+}
+
+size_t threadinfo::rcu_size() {
+    size_t size = 0;
+    for (limbo_group *lg = limbo_head_; lg; lg = lg->next_) {
+        size += lg->size();
+    }
+    return size;
 }
 
 void threadinfo::report_rcu_all(void *ptr)
