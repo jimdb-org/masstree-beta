@@ -292,6 +292,14 @@ class threadinfo {
         return pthreadid_;
     }
 
+    size_t& tid() {
+        return tid_;
+    }
+
+    size_t tid() const {
+        return tid_;
+    }
+
     void report_rcu(void* ptr) const;
     static void report_rcu_all(void* ptr);
     static inline mrcu_epoch_type min_active_epoch();
@@ -309,6 +317,7 @@ class threadinfo {
                                 // checkpoint or recover thread
 
             pthread_t pthreadid_;
+            size_t tid_;
         };
         char padding1[CACHE_LINE_SIZE];
     };
