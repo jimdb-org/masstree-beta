@@ -230,38 +230,13 @@ class threadinfo {
     }
 
     void* pool_allocate(size_t sz, memtag tag) {
-        int nl = (sz + memdebug_size + CACHE_LINE_SIZE - 1) / CACHE_LINE_SIZE;
-        assert(nl <= pool_max_nlines);
-        if (unlikely(!pool_[nl - 1]))
-            refill_pool(nl);
-        void* p = pool_[nl - 1];
-        if (p) {
-            pool_[nl - 1] = *reinterpret_cast<void **>(p);
-            p = memdebug::make(p, sz, memtag(tag + nl));
-            mark(threadcounter(tc_alloc + (tag > memtag_value)),
-                 nl * CACHE_LINE_SIZE);
-        }
-        return p;
+        return allocate(sz, tag);
     }
     void pool_deallocate(void* p, size_t sz, memtag tag) {
-        int nl = (sz + memdebug_size + CACHE_LINE_SIZE - 1) / CACHE_LINE_SIZE;
-        assert(p && nl <= pool_max_nlines);
-        p = memdebug::check_free(p, sz, memtag(tag + nl));
-        if (use_pool()) {
-            *reinterpret_cast<void **>(p) = pool_[nl - 1];
-            pool_[nl - 1] = p;
-        } else
-            free(p);
-        mark(threadcounter(tc_alloc + (tag > memtag_value)),
-             -nl * CACHE_LINE_SIZE);
+        return deallocate(p, sz, tag);
     }
     void pool_deallocate_rcu(void* p, size_t sz, memtag tag) {
-        int nl = (sz + memdebug_size + CACHE_LINE_SIZE - 1) / CACHE_LINE_SIZE;
-        assert(p && nl <= pool_max_nlines);
-        memdebug::check_rcu(p, sz, memtag(tag + nl));
-        record_rcu(p, memtag(tag + nl));
-        mark(threadcounter(tc_alloc + (tag > memtag_value)),
-             -nl * CACHE_LINE_SIZE);
+        return deallocate_rcu(p, sz, tag);
     }
 
     void rcu_start() {
@@ -337,16 +312,11 @@ class threadinfo {
     void refill_rcu();
 
     void free_rcu(void *p, memtag tag) {
-        if ((tag & memtag_pool_mask) == 0) {
+        if (tag != memtag(-1))  {
             p = memdebug::check_free_after_rcu(p, tag);
             ::free(p);
-        } else if (tag == memtag(-1))
+        } else {
             (*static_cast<mrcu_callback*>(p))(*this);
-        else {
-            p = memdebug::check_free_after_rcu(p, tag);
-            int nl = tag & memtag_pool_mask;
-            *reinterpret_cast<void**>(p) = pool_[nl - 1];
-            pool_[nl - 1] = p;
         }
         assert(rcu_size_ >= 0);
         --rcu_size_;
