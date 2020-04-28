@@ -208,6 +208,13 @@ bool tcursor<P>::remove_leaf(leaf_type* leaf, node_type* root,
     // Unlink leaf from doubly-linked leaf list
     btree_leaflink<leaf_type>::unlink(leaf);
 
+    if (!leaf->next_.ptr) {
+        auto prev = leaf->prev_;
+        if (prev && !prev->prev_ && prev->permutation().size() == 0) {
+            gc_layer_rcu_callback<P>::make(root, prefix, ti);
+        }
+    }
+
     // Remove leaf from tree, collapse trivial chains, and rewrite
     // ikey bounds.
     ikey_type ikey = leaf->ikey_bound();
