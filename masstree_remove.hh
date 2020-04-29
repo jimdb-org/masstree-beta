@@ -210,7 +210,7 @@ bool tcursor<P>::remove_leaf(leaf_type* leaf, node_type* root,
 
     if (!leaf->next_.ptr) {
         auto prev = leaf->prev_;
-        if (prev && !prev->prev_ && prev->permutation().size() == 0) {
+        if (prev && !prev->prev_ && prev->permutation().size() == 0 && !prefix.empty()) {
             gc_layer_rcu_callback<P>::make(root, prefix, ti);
         }
     }
