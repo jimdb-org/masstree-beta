@@ -318,7 +318,6 @@ class threadinfo {
         } else {
             (*static_cast<mrcu_callback*>(p))(*this);
         }
-        assert(rcu_size_ >= 0);
         --rcu_size_;
     }
 
